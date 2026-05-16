@@ -22,6 +22,7 @@ Account Changer/
 ├── manifest.json      # Extension config & permissions
 ├── background.js      # Cookie read/write logic (service worker)
 ├── popup.html         # Extension UI (popup window)
+├── popup.css         # Extension UI Styling
 └── popup.js           # UI button event handlers
 ```
 
@@ -74,15 +75,22 @@ Account Changer/
 4. Save the file `next-auth-cookies.json` anywhere on your computer.
 
 ### To Import a Session (Target Browser)
+
+> [!IMPORTANT]
+> **⚠️ Import karne se pehle zaroori hai ke aap kisi bhi ChatGPT chat screen par hon.**
+> Import button tab hi kaam karega jab active tab `chat.openai.com` ka koi bhi page ho — preferably koi khuli hui chat (e.g. `https://chat.openai.com/c/...`). Agar aap kisi aur page par hain (Google, YouTube, etc.) to cookies galat URL par set ho jaenge aur login kaam nahi karega.
+
 1. Open [https://chat.openai.com](https://chat.openai.com) in the target browser (you can be logged out).
-2. Click the **Account Changer** extension icon.
-3. Click **Import Cookies** and select your `next-auth-cookies.json` file.
-4. Refresh the page — you will be logged in automatically.
+2. **Make sure you are on a ChatGPT chat screen** (any chat page on `chat.openai.com`). This is required for the import to work correctly.
+3. Click the **Account Changer** extension icon.
+4. Click **Import Cookies** and select your `next-auth-cookies.json` file.
+5. Refresh the page — you will be logged in automatically.
 
 ---
 
 ## ⚠️ Important Notes
 
+- 🔴 **Import karte waqt ChatGPT ki kisi bhi chat screen par hona ZAROORI hai.** Kisi aur site ya tab par hone se cookies galat jagah set honge aur login fail ho jaega.
 - This extension only works on sites using **NextAuth.js** session cookies (e.g., ChatGPT / chat.openai.com).
 - The exported JSON file contains **your active session token** — treat it like a password. Do not share it.
 - Session tokens expire. If the exported cookie has expired, importing it will not work.

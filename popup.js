@@ -1,8 +1,7 @@
-// popup.js
-
 const exportBtn = document.getElementById("exportBtn");
 const importBtn = document.getElementById("importBtn");
 const fileInput = document.getElementById("fileInput");
+const messageBox = document.getElementById("messageBox");
 
 exportBtn.addEventListener("click", async () => {
 
@@ -37,10 +36,26 @@ fileInput.addEventListener("change", async (event) => {
     currentWindow: true
   });
 
-  chrome.runtime.sendMessage({
-    action: "IMPORT_COOKIES",
-    cookies,
-    url: tab.url
-  });
+  chrome.runtime.sendMessage(
+    {
+      action: "IMPORT_COOKIES",
+      cookies,
+      url: tab.url
+    },
+    (response) => {
+
+      if (response?.success) {
+
+        messageBox.style.display = "block";
+
+        messageBox.innerHTML = `
+          ✅ Cookies imported successfully.<br/><br/>
+          Please refresh the page.
+        `;
+
+      }
+
+    }
+  );
 
 });

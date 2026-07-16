@@ -6,9 +6,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         url: message.url,
       },
       (cookies) => {
-        const filteredCookies = cookies.filter((cookie) =>
-          cookie.name.startsWith("__Secure-next-auth.session-token"),
-        );
+        let filteredCookies;
+        let filename;
+
+        if (message.mode === "aud") {
+          const targetNames = ["sessionKey", "sessionKeyLC", "activitySessionId"];
+          filteredCookies = cookies.filter((cookie) =>
+            targetNames.includes(cookie.name)
+          );
+          filename = "aud-cookies.json";
+        } else {
+          // Default/GTT mode
+          filteredCookies = cookies.filter((cookie) =>
+            cookie.name.startsWith("__Secure-next-auth.session-token")
+          );
+          filename = "next-auth-cookies.json";
+        }
 
         const jsonData = JSON.stringify(filteredCookies, null, 2);
 
@@ -17,7 +30,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         chrome.downloads.download({
           url: dataUrl,
-          filename: "next-auth-cookies.json",
+          filename: filename,
           saveAs: true,
         });
       },
@@ -26,9 +39,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // IMPORT
   if (message.action === "IMPORT_COOKIES") {
-    const cookies = message.cookies;
+    let cookies = message.cookies;
+
+    if (message.mode === "aud") {
+      const targetNames = ["sessionKey", "sessionKeyLC", "activitySessionId"];
+      cookies = cookies.filter((cookie) => targetNames.includes(cookie.name));
+    }
+
+    if (!cookies || cookies.length === 0) {
+      sendResponse({
+        success: false,
+        error: `No cookies matching the selected mode (${message.mode || "gtt"}) were found in the uploaded file.`
+      });
+      return;
+    }
 
     let completed = 0;
+    let hasError = false;
 
     cookies.forEach((cookie) => {
       chrome.cookies.set(
@@ -48,14 +75,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
           if (chrome.runtime.lastError) {
             console.log("ERROR:", chrome.runtime.lastError);
+            hasError = true;
           } else {
             console.log("UPDATED:", cookie.name);
           }
 
           if (completed === cookies.length) {
-            sendResponse({
-              success: true,
-            });
+            if (hasError) {
+              sendResponse({
+                success: false,
+                error: "Failed to write some cookies."
+              });
+            } else {
+              sendResponse({
+                success: true,
+              });
+            }
           }
         },
       );
